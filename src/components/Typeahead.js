@@ -3,6 +3,9 @@ import styled from "styled-components";
 
 const Typeahead = ({ suggestions, handleSelect, categories }) => {
   const [value, setValue] = React.useState("");
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = React.useState(
+    0
+  );
 
   const filteredSuggestions = suggestions.filter(
     (book) =>
@@ -10,6 +13,8 @@ const Typeahead = ({ suggestions, handleSelect, categories }) => {
       value.length >= 2 &&
       book.title.toLowerCase() !== value.toLowerCase()
   );
+
+  console.log(selectedSuggestionIndex);
 
   return (
     <MainWrapper>
@@ -19,9 +24,27 @@ const Typeahead = ({ suggestions, handleSelect, categories }) => {
           value={value}
           placeholder="Search book..."
           onChange={(keyDown) => setValue(keyDown.target.value)}
-          onKeyDown={(keyDown) => {
-            if (keyDown.key === "Enter") {
-              handleSelect(keyDown.target.value);
+          onKeyDown={(event) => {
+            console.log(event.key);
+            switch (event.key) {
+              case "Enter": {
+                handleSelect(
+                  filteredSuggestions[selectedSuggestionIndex].title
+                );
+                return;
+              }
+              case "ArrowUp": {
+                if (selectedSuggestionIndex > 0) {
+                  setSelectedSuggestionIndex(selectedSuggestionIndex - 1);
+                }
+                return;
+              }
+              case "ArrowDown": {
+                if (selectedSuggestionIndex < filteredSuggestions.length - 1) {
+                  setSelectedSuggestionIndex(selectedSuggestionIndex + 1);
+                }
+                return;
+              }
             }
           }}
         />
@@ -31,7 +54,7 @@ const Typeahead = ({ suggestions, handleSelect, categories }) => {
       <WrapperSuggestions>
         {filteredSuggestions.length > 0 && (
           <HiddenWrapperSuggestions>
-            {filteredSuggestions.map((book) => {
+            {filteredSuggestions.map((book, index) => {
               const suggestionStart = book.title
                 .toLowerCase()
                 .indexOf(value.toLowerCase());
@@ -46,6 +69,13 @@ const Typeahead = ({ suggestions, handleSelect, categories }) => {
                 <SuggestionsList
                   key={book.id}
                   onClick={() => handleSelect(book.title)}
+                  onMouseOver={() => setSelectedSuggestionIndex(index)}
+                  style={{
+                    background:
+                      selectedSuggestionIndex === index
+                        ? "beige"
+                        : "transparent",
+                  }}
                 >
                   <span>
                     {firstHalf}
@@ -102,10 +132,6 @@ const SuggestionsList = styled.li`
   padding: 7px;
   list-style-type: none;
   cursor: pointer;
-
-  &:hover {
-    background-color: beige;
-  }
 `;
 
 const Prediction = styled.strong``;
